@@ -1,0 +1,37 @@
+<section class="notfound">
+    <h1 class="A04">404</h1>
+    <h2 class="A04">Page Introuvable</h2>
+    
+    <p class="deso">Désolé, mais la page que vous recherchez semble avoir disparu !</p>
+
+    <?php 
+
+    $alea = rand(1, 100);
+    
+    if ($alea >= 70) {
+        
+        $messages_rigolos = [
+            "Oups ! On dirait que cette page est partie prendre des vacances sans nous prévenir.",
+            "Nous avons cherché partout. Peut-être est-elle cachée sous le canapé du serveur ?",
+            "Cette page est plus mystérieuse que le sens de la vie. (Et elle n'est pas 42).",
+            "Attention : Vous avez atterri dans la zone des liens perdus. Veuillez rebrousser chemin.",
+            "Nos développeurs promettent de retrouver cette page après leur prochaine pause café.",
+            "C'est un peu embarrassant. Allez, retournez à l'accueil, on fait comme si rien ne s'était passé."
+        ];
+        
+        $message_secret = $messages_rigolos[array_rand($messages_rigolos)];
+        
+        ?>
+        <div class="message_secret">
+            
+            <p><?= $message_secret ?></p>
+        </div>
+        
+        <?php }  ?>
+        <p class="retour_accueil">
+            <a href="index.php" class="btn">Retour à l'accueil</a>
+        </p>
+    <?php  ?>
+    <p class = "domage">¯\_(ツ)_/¯</p>
+    
+</section>

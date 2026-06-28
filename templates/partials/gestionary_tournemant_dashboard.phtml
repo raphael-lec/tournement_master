@@ -1,0 +1,155 @@
+<div class="tournament-dashboard">
+    <h1>⚙️ Gestion du Tournoi</h1>
+
+    <!-- ===== CRÉATION DES POULES ===== -->
+    <?php if (!$hasPoules): ?>
+    <section class="dashboard-section">
+        <h2>🗂️ Organiser les poules</h2>
+        <form method="POST" action="index.php?route=gestionary_tournemant_dashboard&id=<?php echo $tournamentId; ?>" id="poules-form">
+            <input type="hidden" name="create_poules" value="1">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nombre de poules</label>
+                    <input type="number" name="nb_poules" id="nb_poules" min="1" max="8" value="2" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Équipes par poule</label>
+                    <input type="number" name="teams_par_poule" id="teams_par_poule" min="2" value="2" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label>Équipes sortantes par poule</label>
+                    <input type="number" name="sortants_par_poule" min="1" value="1" class="form-input" required>
+                </div>
+                <button type="button" onclick="genererPoules()" class="btn btn-generate">⚡ Générer les poules</button>
+            </div>
+
+            <div id="poules-container"></div>
+
+            <button type="submit" class="btn btn-save" style="display:none" id="btn-submit">💾 Créer les poules</button>
+        </form>
+    </section>
+    <?php endif; ?>
+
+    <!-- ===== MATCHS DE POULE ===== -->
+    <?php if (!empty($poulesMatchs)): ?>
+    <section class="dashboard-section">
+        <h2>🏟️ Phase de poules</h2>
+        <?php
+            $poulesGrouped = [];
+            foreach ($poulesMatchs as $match) {
+                $poulesGrouped[$match['poule_name']][] = $match;
+            }
+        ?>
+        <?php foreach ($poulesGrouped as $pouleName => $matchs): ?>
+            <h3>Poule <?php echo $pouleName; ?></h3>
+            <table class="dashboard-table">
+                <thead>
+                    <tr><th>Équipe 1</th><th>Score</th><th>Équipe 2</th><th>Gagnant</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($matchs as $match): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?></td>
+                            <td><?php echo $match['score_team_1']; ?> - <?php echo $match['score_team_2']; ?></td>
+                            <td><?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?></td>
+                            <td><?php echo $match['winner_team_id'] > 0 ? ($match['winner_team_id'] == $match['team1_id'] ? $match['team1_name'] : $match['team2_name']) : '—'; ?></td>
+                            <td>
+                                <form method="POST" action="index.php?route=gestionary_tournemant_dashboard&id=<?php echo $tournamentId; ?>" style="display:flex;gap:6px;align-items:center;">
+                                    <input type="hidden" name="match_id" value="<?php echo $match['id']; ?>">
+                                    <input type="number" name="score_team_1" value="<?php echo $match['score_team_1']; ?>" min="0" style="width:50px">
+                                    <span>-</span>
+                                    <input type="number" name="score_team_2" value="<?php echo $match['score_team_2']; ?>" min="0" style="width:50px">
+                                    <select name="winner_team_id">
+                                        <option value="0">— Gagnant —</option>
+                                        <option value="<?php echo $match['team1_id']; ?>" <?php echo $match['winner_team_id'] == $match['team1_id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?>
+                                        </option>
+                                        <option value="<?php echo $match['team2_id']; ?>" <?php echo $match['winner_team_id'] == $match['team2_id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?>
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn-small">💾</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endforeach; ?>
+    </section>
+    <?php endif; ?>
+
+    <!-- ===== PHASES ÉLIMINATOIRES ===== -->
+    <?php foreach (['quart' => '⚔️ Quarts de finale', 'demi' => '🔥 Demi-finales', 'finale' => '🏆 Finale'] as $phase => $label): ?>
+        <?php $matchs = match($phase) { 'quart' => $quartMatchs, 'demi' => $demiMatchs, 'finale' => $finaleMatchs }; ?>
+        <?php if (!empty($matchs)): ?>
+        <section class="dashboard-section">
+            <h2><?php echo $label; ?></h2>
+            <table class="dashboard-table">
+                <thead>
+                    <tr><th>Équipe 1</th><th>Score</th><th>Équipe 2</th><th>Gagnant</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($matchs as $match): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?></td>
+                            <td><?php echo $match['score_team_1']; ?> - <?php echo $match['score_team_2']; ?></td>
+                            <td><?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?></td>
+                            <td><?php echo $match['winner_team_id'] > 0 ? ($match['winner_team_id'] == $match['team1_id'] ? $match['team1_name'] : $match['team2_name']) : '—'; ?></td>
+                            <td>
+                                <form method="POST" action="index.php?route=gestionary_tournemant_dashboard&id=<?php echo $tournamentId; ?>" style="display:flex;gap:6px;align-items:center;">
+                                    <input type="hidden" name="match_id" value="<?php echo $match['id']; ?>">
+                                    <input type="number" name="score_team_1" value="<?php echo $match['score_team_1']; ?>" min="0" style="width:50px">
+                                    <span>-</span>
+                                    <input type="number" name="score_team_2" value="<?php echo $match['score_team_2']; ?>" min="0" style="width:50px">
+                                    <select name="winner_team_id">
+                                        <option value="0">— Gagnant —</option>
+                                        <option value="<?php echo $match['team1_id']; ?>" <?php echo $match['winner_team_id'] == $match['team1_id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?>
+                                        </option>
+                                        <option value="<?php echo $match['team2_id']; ?>" <?php echo $match['winner_team_id'] == $match['team2_id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?>
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn-small">💾</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </section>
+        <?php endif; ?>
+    <?php endforeach; ?>
+
+    <!-- ===== ÉQUIPES ===== -->
+    <section class="dashboard-section">
+        <h2>👥 Équipes inscrites</h2>
+        <?php if (empty($teams)): ?>
+            <p>Aucune équipe inscrite.</p>
+        <?php else: ?>
+            <div class="teams-grid">
+                <?php foreach ($teams as $team): ?>
+                    <div class="team-card">
+                        <h3>🏅 <?php echo htmlspecialchars($team['name']); ?></h3>
+                        <p><small>Leader : <?php echo htmlspecialchars($team['leader']); ?></small></p>
+                        <ul>
+                            <?php if (!empty($team['members'])): ?>
+                                <?php foreach ($team['members'] as $member): ?>
+                                    <li>👤 <?php echo htmlspecialchars($member['name']); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li><em>Aucun membre</em></li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </section>
+</div>
+<script>
+    const TEAMS_DATA = <?php echo json_encode(array_map(fn($t) => ['id' => $t['id'], 'name' => $t['name']], $teams)); ?>;
+</script>
+<script src="assets/js/poules.js"></script>

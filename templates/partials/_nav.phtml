@@ -1,0 +1,20 @@
+<nav class="main-nav"> 
+    <div class="nav-brand-links"> 
+        <a href="?route=home" class="nav-link">ACCUEIL</a>
+        <a href="?route=tournemant_list" class="nav-link">TOURNOIS</a>
+    </div>
+
+    <?php if(isset($_SESSION['user']) && $_SESSION['user']){ ?>
+        <a href="?route=profile" class="nav-link">PROFIL</a>
+        <div class="nav-user-info">
+            <p class="user-name-display">
+                <?php echo htmlspecialchars($_SESSION['user']->getName()); ?>
+            </p>
+            <form method="POST" action="index.php?route=logout" style="display: inline;">
+                <button type="submit" class="nav-link">Déconnexion</button>
+            </form>
+        </div>
+    <?php } else { ?>
+        <a class="nav-link nav-connect-btn" href="?route=login">Se connecter</a>
+    <?php } ?>
+</nav>

@@ -1,0 +1,49 @@
+<div class="gestionary-container">
+    <h1>📅 Tableau de Bord - Gestionnaire</h1>
+
+    <section class="add-tournament">
+        <h2>➕ Créer un nouveau tournoi</h2>
+        <form action="index.php?route=create_tournament" method="POST">
+            <input type="text" name="name" placeholder="Nom du tournoi" required>
+            <input type="date" name="date" required>
+            
+            <input type="number" name="format" placeholder="Format (pers/équipe)" required>
+            <input type="number" name="max_participant" placeholder="Max participants" required>
+            <input type="hidden" name="status_id" value="1"> <button type="submit">Créer le tournoi</button>
+        </form>
+    </section>
+    <hr>
+
+    <section class="my-tournaments">
+        <h2>🏆 Mes tournois organisés</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+           <tbody>
+                <?php foreach ($tournaments as $t): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($t['name']); ?></td>
+                    <td><?php echo htmlspecialchars($t['date']); ?></td>
+                    <td>
+                        <strong><?php echo htmlspecialchars($t['status']); ?></strong> |
+                        
+                        <?php if ($t['status'] === 'open'): ?>
+                            <a href="index.php?route=update_status&id=<?php echo $t['id']; ?>&status=ongoing">Lancer</a>
+                        <?php elseif ($t['status'] === 'ongoing'): ?>
+                            <a href="index.php?route=update_status&id=<?php echo $t['id']; ?>&status=finish">Terminer</a>
+                        <?php endif; ?>
+                        
+                        <a href="index.php?route=view_tournament&id=<?php echo $t['id']; ?>">Voir</a>
+                        <a href="index.php?route=gestionary_tournemant_dashboard&id=<?php echo $t['id']; ?>">Gérer</a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </section>
+</div>

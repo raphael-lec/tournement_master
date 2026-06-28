@@ -1,0 +1,258 @@
+<?php $status = $tournament['status']; ?>
+<div class="tournament-home">
+
+    <header class="tournament-header">
+        <h1>🏆 <?php echo htmlspecialchars($tournament['name']); ?></h1>
+        <div class="tournament-meta">
+            <?php
+                $badgeClass = match($status) {
+                    'open'    => 'badge-open',
+                    'ongoing' => 'badge-ongoing',
+                    default   => 'badge-finished'
+                };
+                $badgeLabel = match($status) {
+                    'open'    => 'Inscriptions ouvertes',
+                    'ongoing' => 'En cours',
+                    default   => 'Terminé'
+                };
+            ?>
+            <span class="badge <?php echo $badgeClass; ?>"><?php echo $badgeLabel; ?></span>
+            <span>📅 <?php echo htmlspecialchars($tournament['date']); ?></span>
+            <span>👥 <?php echo $teamsCount; ?> / <?php echo $tournament['max_participant']; ?> équipes</span>
+        </div>
+    </header>
+
+    <?php if ($message): ?>
+        <div class="alert alert-<?php echo $message['type']; ?>">
+            <?php echo htmlspecialchars($message['text']); ?>
+        </div>
+    <?php endif; ?>
+
+    <!-- ===== INSCRIPTION (open uniquement) ===== -->
+    <?php if ($status === 'open'): ?>
+        <section class="register-section">
+            <h2>📝 Inscription</h2>
+
+            <?php if ($teamsCount >= $tournament['max_participant']): ?>
+                <p class="full-notice">❌ Le tournoi est complet.</p>
+
+            <?php elseif ($isConnected): ?>
+                <?php $format = (int)$tournament['format']; ?>
+                <p>Places restantes : <strong><?php echo $tournament['max_participant'] - $teamsCount; ?></strong></p>
+
+                <form method="POST" action="index.php?route=tournemant_home&id=<?php echo $tournament['id']; ?>" class="register-form">
+                    <input type="hidden" name="register" value="1">
+
+                    <div class="form-group">
+                        <label>Nom de l'équipe</label>
+                        <input type="text" name="team_name" placeholder="Ex: Les Invincibles" required class="form-input">
+                    </div>
+
+                    <?php if ($format > 1): ?>
+                        <div class="form-group">
+                            <label>
+                                Choisir des coéquipiers
+                                <small>(<?php echo $format - 1; ?> coéquipier<?php echo $format > 2 ? 's' : ''; ?> à sélectionner)</small>
+                            </label>
+                            <p class="format-info">⚠️ Ce tournoi est en <strong><?php echo $format; ?>v<?php echo $format; ?></strong> — sélectionnez exactement <?php echo $format - 1; ?> coéquipier<?php echo $format > 2 ? 's' : ''; ?>.</p>
+                            <div class="members-list">
+                                <?php foreach ($allUsers as $u): ?>
+                                    <?php if ($u['id'] !== ($user ? $user->getId() : 0)): ?>
+                                        <label class="member-option">
+                                            <input type="checkbox" name="members[]" value="<?php echo $u['id']; ?>" class="member-checkbox">
+                                            <?php echo htmlspecialchars($u['name']); ?>
+                                        </label>
+                                    <?php endif; ?>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <p class="format-info">🎮 Ce tournoi est en <strong>1v1</strong> — vous jouez seul.</p>
+                    <?php endif; ?>
+
+                    <button type="submit" class="btn btn-register">✅ S'inscrire</button>
+                </form>
+
+                <script>
+                const maxMembers = <?php echo $format - 1; ?>;
+                const checkboxes = document.querySelectorAll('.member-checkbox');
+                checkboxes.forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        const checked = document.querySelectorAll('.member-checkbox:checked');
+                        if (checked.length >= maxMembers) {
+                            checkboxes.forEach(c => { if (!c.checked) c.disabled = true; });
+                        } else {
+                            checkboxes.forEach(c => c.disabled = false);
+                        }
+                    });
+                });
+                </script>
+
+            <?php else: ?>
+                <p><a href="index.php?route=login">Connectez-vous</a> pour vous inscrire.</p>
+            <?php endif; ?>
+        </section>
+    <?php endif; ?>
+
+    <!-- ===== MATCHS (ongoing) ===== -->
+    <?php if ($status === 'ongoing'): ?>
+        <section class="matches-section">
+            <h2>🎮 Matchs en cours</h2>
+            <?php if (empty($matches)): ?>
+                <p>Aucun match programmé pour l'instant.</p>
+            <?php else: ?>
+                <table class="matches-table">
+                    <thead>
+                        <tr>
+                            <th>Équipe 1</th>
+                            <th>Score</th>
+                            <th>Équipe 2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($matches as $match): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?></td>
+                                <td><?php echo $match['score_team_1']; ?> - <?php echo $match['score_team_2']; ?></td>
+                                <td><?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </section>
+    <?php endif; ?>
+
+    <!-- ===== RÉSULTATS + PARTICIPANTS (finish) ===== -->
+    <?php if ($status === 'finish'): ?>
+        <section class="results-section">
+            <h2>🏅 Résultats</h2>
+            <?php if (empty($matches)): ?>
+                <p>Aucun résultat disponible.</p>
+            <?php else: ?>
+                <?php
+                    $phases = [
+                        'poule'  => '🏟️ Phase de poules',
+                        'quart'  => '⚔️ Quarts de finale',
+                        'demi'   => '🔥 Demi-finales',
+                        'finale' => '🏆 Finale',
+                    ];
+
+                    $matchesByPhase = [];
+                    foreach ($matches as $match) {
+                        $phase = $match['phase'] ?? 'poule';
+                        $matchesByPhase[$phase][] = $match;
+                    }
+                ?>
+
+                <?php foreach ($phases as $phaseKey => $phaseLabel): ?>
+                    <?php if (!empty($matchesByPhase[$phaseKey])): ?>
+                        <h3><?php echo $phaseLabel; ?></h3>
+
+                        <?php if ($phaseKey === 'poule'): ?>
+                            <?php
+                                $poulesGrouped = [];
+                                foreach ($matchesByPhase['poule'] as $m) {
+                                    $poulesGrouped[$m['poule_name'] ?? 'A'][] = $m;
+                                }
+                            ?>
+                            <?php foreach ($poulesGrouped as $pouleName => $pouleMatchs): ?>
+                                <h4>Poule <?php echo htmlspecialchars($pouleName); ?></h4>
+                                <table class="matches-table">
+                                    <thead>
+                                        <tr><th>Équipe 1</th><th>Score</th><th>Équipe 2</th><th>Gagnant</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($pouleMatchs as $match): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?></td>
+                                                <td><?php echo $match['score_team_1']; ?> - <?php echo $match['score_team_2']; ?></td>
+                                                <td><?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?></td>
+                                                <td>🥇 <?php
+                                                    if ($match['winner_team_id'] > 0) {
+                                                        echo htmlspecialchars($match['winner_team_id'] == $match['team1_id'] ? ($match['team1_name'] ?? '?') : ($match['team2_name'] ?? '?'));
+                                                    } else { echo '—'; }
+                                                ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            <?php endforeach; ?>
+
+                        <?php else: ?>
+                            <table class="matches-table">
+                                <thead>
+                                    <tr><th>Équipe 1</th><th>Score</th><th>Équipe 2</th><th>Gagnant</th></tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($matchesByPhase[$phaseKey] as $match): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?></td>
+                                            <td><?php echo $match['score_team_1']; ?> - <?php echo $match['score_team_2']; ?></td>
+                                            <td><?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?></td>
+                                            <td>🥇 <?php
+                                                if ($match['winner_team_id'] > 0) {
+                                                    echo htmlspecialchars($match['winner_team_id'] == $match['team1_id'] ? ($match['team1_name'] ?? '?') : ($match['team2_name'] ?? '?'));
+                                                } else { echo '—'; }
+                                            ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </section>
+
+        <section class="participants-section">
+            <h2>👥 Équipes participantes</h2>
+            <div class="teams-grid">
+                <?php foreach ($teams as $team): ?>
+                    <div class="team-card">
+                        <h3>🏅 <?php echo htmlspecialchars($team['name']); ?></h3>
+                        <ul>
+                            <?php if (!empty($team['members'])): ?>
+                                <?php foreach ($team['members'] as $member): ?>
+                                    <li>👤 <?php echo htmlspecialchars($member['name']); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li><em>Aucun membre</em></li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    <?php endif; ?>
+
+</div>
+
+<style>
+.tournament-home { max-width: 900px; margin: 2rem auto; padding: 1rem; }
+.tournament-header { margin-bottom: 2rem; }
+.tournament-meta { display: flex; gap: 1.5rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
+.badge { padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+.badge-open { background: #2ecc71; color: white; }
+.badge-ongoing { background: #f39c12; color: white; }
+.badge-finished { background: #95a5a6; color: white; }
+.alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 1rem; }
+.alert-success { background: #d4edda; color: #155724; }
+.alert-error { background: #f8d7da; color: #721c24; }
+.register-section, .matches-section, .results-section, .participants-section { margin-bottom: 2.5rem; }
+.register-form { max-width: 500px; }
+.form-group { margin-bottom: 1.2rem; }
+.form-group label { display: block; font-weight: bold; margin-bottom: 0.4rem; }
+.format-info { color: #e67e22; font-size: 0.9rem; margin-bottom: 0.5rem; }
+.members-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 6px; }
+.member-option { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.member-option input { width: auto; }
+.matches-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+.matches-table th, .matches-table td { padding: 10px 14px; border: 1px solid #ddd; text-align: left; }
+.matches-table th { background: #1a1a2e; color: white; }
+.teams-grid { display: flex; flex-wrap: wrap; gap: 1rem; }
+.team-card { background: #f5f5f5; border-radius: 8px; padding: 1rem; min-width: 180px; }
+.team-card ul { padding-left: 1rem; margin-top: 0.5rem; }
+.btn-register { background: #e63946; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+.full-notice { color: #e63946; font-weight: bold; }
+</style>

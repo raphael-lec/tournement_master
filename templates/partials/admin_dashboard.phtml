@@ -1,0 +1,89 @@
+<div class="admin-dashboard-container">
+    <h1>🛡️ Tableau de Bord - Administrateur</h1>
+    <p>Bienvenue dans votre espace de gestion, <strong><?php echo htmlspecialchars($data['username']); ?></strong>.</p>
+
+    <hr>
+
+    <div class="dashboard-sections">
+        
+        <section class="dashboard-section">
+            <h2>👥 Liste des Utilisateurs</h2>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Rôle actuel</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($data['users'])): ?>
+                        <?php foreach ($data['users'] as $u): ?>
+                            <tr>
+                                <td><?php echo $u->getId(); ?></td>
+                                <td><?php echo htmlspecialchars($u->getName()); ?></td>
+                                <td><?php echo htmlspecialchars($u->getEmail()); ?></td>
+                                <td>
+                                    <form method="POST" action="index.php?route=admin_change_role">
+                                        <input type="hidden" name="user_id" value="<?php echo $u->getId(); ?>">
+                                        <select name="new_type" onchange="this.form.submit()">
+                                            <option value="user" <?php echo ($u->getType() === 'user') ? 'selected' : ''; ?>>User</option>
+                                            <option value="gestionnaire" <?php echo ($u->getType() === 'gestionnaire') ? 'selected' : ''; ?>>Gestionnaire</option>
+                                            <option value="admin" <?php echo ($u->getType() === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form method="POST" action="index.php?route=admin_delete_user" onsubmit="return confirm('Supprimer cet utilisateur ?');">
+                                        <input type="hidden" name="user_id" value="<?php echo $u->getId(); ?>">
+                                        <a href="index.php?route=admin_delete_user&user_id=<?php echo $u->getId(); ?>" 
+                                        onclick="return confirm('Supprimer cet utilisateur ?');" 
+                                        style="color: red; font-weight: bold;">Supprimer (Lien)</a>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="dashboard-section">
+            <h2>🏆 Liste des Tournois</h2>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom du Tournoi</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($data['tournaments'])): ?>
+                        <?php foreach ($data['tournaments'] as $tournament): ?>
+                            <tr>
+                                <td><?php echo $tournament->getId(); ?></td>
+                                <td><?php echo htmlspecialchars($tournament->getName()); ?></td>
+                                <td>
+                                    <form method="POST" action="index.php?route=admin_delete_tournament" onsubmit="return confirm('Supprimer ce tournoi ?');">
+                                        <input type="hidden" name="tournament_id" value="<?php echo $tournament->getId(); ?>">
+                                        <button type="submit" class="btn-delete">Supprimer</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </section>
+        <section class="add-game">
+            <h2>➕ Ajouter un nouveau jeu</h2>
+            <form action="index.php?route=create_game" method="POST">
+                <input type="text" name="game_name" placeholder="Nom du jeu" required>
+                <button type="submit">Ajouter</button>
+            </form>
+        </section>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+<div class="register">
+
+    <h2 class="titr">Créer un compte</h2>
+    
+    <?php 
+    
+    if (isset($error) && $error): 
+    ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
+    <?php endif; ?>
+    
+    <form method="POST" action="index.php?route=inscription">
+        <div class="inputz">
+            <label for="username" class="form-label">Nom d'utilisateur</label>
+            <input type="text" class="form-control" id="username" name="username" required 
+                    value="<?= isset($_POST['username']) ? htmlspecialchars($_POST['username']) : '' ?>">
+        </div>
+        <div class="inputz">
+            <label for="email" class="form-label">Adresse Email</label>
+            <input type="email" class="form-control" id="email" name="email" required 
+                    value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
+        </div>
+        <div class="inputz">
+            <label for="password" class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+            <div class="form-text">Minimum 6 caractères.</div>
+        </div>
+        <button type="submit" class="btn">S'inscrire</button>
+    </form>
+    <p class="mt-3">Déjà un compte ? <a href="?route=connect">Se connecter</a></p>
+
+</div>
