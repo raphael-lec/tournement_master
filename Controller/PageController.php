@@ -2,7 +2,6 @@
 
 class PageController extends AbstractController 
 {
-    // --- ACCUEIL ---
     public function home() : void
     {
         $isConnected = $this->isAuthenticated();
@@ -22,7 +21,6 @@ class PageController extends AbstractController
         ]);
     }
 
-    // --- PROFIL UTILISATEUR ---
     public function profile() : void
     {
         $isConnected = $this->isAuthenticated();
@@ -42,7 +40,6 @@ class PageController extends AbstractController
         ]);
     }
 
-    // --- ERREUR 404 ---
     public function notFound() : void
     {
         $isConnected = $this->isAuthenticated();

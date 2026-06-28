@@ -2,7 +2,7 @@
 <div class="tournament-home">
 
     <header class="tournament-header">
-        <h1>🏆 <?php echo htmlspecialchars($tournament['name']); ?></h1>
+        <h1> <?php echo htmlspecialchars($tournament['name']); ?></h1>
         <div class="tournament-meta">
             <?php
                 $badgeClass = match($status) {
@@ -17,8 +17,13 @@
                 };
             ?>
             <span class="badge <?php echo $badgeClass; ?>"><?php echo $badgeLabel; ?></span>
-            <span>📅 <?php echo htmlspecialchars($tournament['date']); ?></span>
-            <span>👥 <?php echo $teamsCount; ?> / <?php echo $tournament['max_participant']; ?> équipes</span>
+            <span> <?php echo htmlspecialchars($tournament['date']); ?></span>
+            <span> <?php echo $teamsCount; ?> / <?php echo $tournament['max_participant']; ?> équipes</span>
+            <?php if (!empty($tournament['discord_link'])): ?>
+                <a href="<?php echo htmlspecialchars($tournament['discord_link']); ?>" target="_blank" class="discord-link">
+                     Rejoindre le Discord
+                </a>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -28,13 +33,12 @@
         </div>
     <?php endif; ?>
 
-    <!-- ===== INSCRIPTION (open uniquement) ===== -->
     <?php if ($status === 'open'): ?>
         <section class="register-section">
-            <h2>📝 Inscription</h2>
+            <h2> Inscription</h2>
 
             <?php if ($teamsCount >= $tournament['max_participant']): ?>
-                <p class="full-notice">❌ Le tournoi est complet.</p>
+                <p class="full-notice"> Le tournoi est complet.</p>
 
             <?php elseif ($isConnected): ?>
                 <?php $format = (int)$tournament['format']; ?>
@@ -54,7 +58,7 @@
                                 Choisir des coéquipiers
                                 <small>(<?php echo $format - 1; ?> coéquipier<?php echo $format > 2 ? 's' : ''; ?> à sélectionner)</small>
                             </label>
-                            <p class="format-info">⚠️ Ce tournoi est en <strong><?php echo $format; ?>v<?php echo $format; ?></strong> — sélectionnez exactement <?php echo $format - 1; ?> coéquipier<?php echo $format > 2 ? 's' : ''; ?>.</p>
+                            <p class="format-info"> Ce tournoi est en <strong><?php echo $format; ?>v<?php echo $format; ?></strong> — sélectionnez exactement <?php echo $format - 1; ?> coéquipier<?php echo $format > 2 ? 's' : ''; ?>.</p>
                             <div class="members-list">
                                 <?php foreach ($allUsers as $u): ?>
                                     <?php if ($u['id'] !== ($user ? $user->getId() : 0)): ?>
@@ -67,10 +71,10 @@
                             </div>
                         </div>
                     <?php else: ?>
-                        <p class="format-info">🎮 Ce tournoi est en <strong>1v1</strong> — vous jouez seul.</p>
+                        <p class="format-info"> Ce tournoi est en <strong>1v1</strong> — vous jouez seul.</p>
                     <?php endif; ?>
 
-                    <button type="submit" class="btn btn-register">✅ S'inscrire</button>
+                    <button type="submit" class="btn btn-register"> S'inscrire</button>
                 </form>
 
                 <script>
@@ -94,10 +98,9 @@
         </section>
     <?php endif; ?>
 
-    <!-- ===== MATCHS (ongoing) ===== -->
     <?php if ($status === 'ongoing'): ?>
         <section class="matches-section">
-            <h2>🎮 Matchs en cours</h2>
+            <h2>Matchs en cours</h2>
             <?php if (empty($matches)): ?>
                 <p>Aucun match programmé pour l'instant.</p>
             <?php else: ?>
@@ -123,19 +126,28 @@
         </section>
     <?php endif; ?>
 
-    <!-- ===== RÉSULTATS + PARTICIPANTS (finish) ===== -->
     <?php if ($status === 'finish'): ?>
         <section class="results-section">
-            <h2>🏅 Résultats</h2>
+
+            <?php if (!empty($winnerName)): ?>
+                <div class="podium-banner">
+                    <div class="podium-place podium-first"> 1er : <strong><?php echo htmlspecialchars($winnerName); ?></strong></div>
+                    <?php if (!empty($runnerUpName)): ?>
+                        <div class="podium-place podium-second"> 2ème : <strong><?php echo htmlspecialchars($runnerUpName); ?></strong></div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <h2> Résultats</h2>
             <?php if (empty($matches)): ?>
                 <p>Aucun résultat disponible.</p>
             <?php else: ?>
                 <?php
                     $phases = [
-                        'poule'  => '🏟️ Phase de poules',
-                        'quart'  => '⚔️ Quarts de finale',
-                        'demi'   => '🔥 Demi-finales',
-                        'finale' => '🏆 Finale',
+                        'poule'  => 'Phase de poules',
+                        'quart'  => ' Quarts de finale',
+                        'demi'   => ' Demi-finales',
+                        'finale' => ' Finale',
                     ];
 
                     $matchesByPhase = [];
@@ -168,7 +180,7 @@
                                                 <td><?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?></td>
                                                 <td><?php echo $match['score_team_1']; ?> - <?php echo $match['score_team_2']; ?></td>
                                                 <td><?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?></td>
-                                                <td>🥇 <?php
+                                                <td> <?php
                                                     if ($match['winner_team_id'] > 0) {
                                                         echo htmlspecialchars($match['winner_team_id'] == $match['team1_id'] ? ($match['team1_name'] ?? '?') : ($match['team2_name'] ?? '?'));
                                                     } else { echo '—'; }
@@ -190,7 +202,7 @@
                                             <td><?php echo htmlspecialchars($match['team1_name'] ?? '?'); ?></td>
                                             <td><?php echo $match['score_team_1']; ?> - <?php echo $match['score_team_2']; ?></td>
                                             <td><?php echo htmlspecialchars($match['team2_name'] ?? '?'); ?></td>
-                                            <td>🥇 <?php
+                                            <td> <?php
                                                 if ($match['winner_team_id'] > 0) {
                                                     echo htmlspecialchars($match['winner_team_id'] == $match['team1_id'] ? ($match['team1_name'] ?? '?') : ($match['team2_name'] ?? '?'));
                                                 } else { echo '—'; }
@@ -206,15 +218,22 @@
         </section>
 
         <section class="participants-section">
-            <h2>👥 Équipes participantes</h2>
+            <h2> Équipes participantes</h2>
             <div class="teams-grid">
                 <?php foreach ($teams as $team): ?>
                     <div class="team-card">
-                        <h3>🏅 <?php echo htmlspecialchars($team['name']); ?></h3>
+                        <h3>
+                             <?php echo htmlspecialchars($team['name']); ?>
+                            <?php if (!empty($winnerTeamId) && $team['id'] == $winnerTeamId): ?>
+                                <span class="rank-badge rank-1">🥇 1er</span>
+                            <?php elseif (!empty($runnerUpTeamId) && $team['id'] == $runnerUpTeamId): ?>
+                                <span class="rank-badge rank-2">🥈 2ème</span>
+                            <?php endif; ?>
+                        </h3>
                         <ul>
                             <?php if (!empty($team['members'])): ?>
                                 <?php foreach ($team['members'] as $member): ?>
-                                    <li>👤 <?php echo htmlspecialchars($member['name']); ?></li>
+                                    <li> <?php echo htmlspecialchars($member['name']); ?></li>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <li><em>Aucun membre</em></li>
@@ -227,32 +246,3 @@
     <?php endif; ?>
 
 </div>
-
-<style>
-.tournament-home { max-width: 900px; margin: 2rem auto; padding: 1rem; }
-.tournament-header { margin-bottom: 2rem; }
-.tournament-meta { display: flex; gap: 1.5rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap; }
-.badge { padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
-.badge-open { background: #2ecc71; color: white; }
-.badge-ongoing { background: #f39c12; color: white; }
-.badge-finished { background: #95a5a6; color: white; }
-.alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 1rem; }
-.alert-success { background: #d4edda; color: #155724; }
-.alert-error { background: #f8d7da; color: #721c24; }
-.register-section, .matches-section, .results-section, .participants-section { margin-bottom: 2.5rem; }
-.register-form { max-width: 500px; }
-.form-group { margin-bottom: 1.2rem; }
-.form-group label { display: block; font-weight: bold; margin-bottom: 0.4rem; }
-.format-info { color: #e67e22; font-size: 0.9rem; margin-bottom: 0.5rem; }
-.members-list { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 6px; }
-.member-option { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-.member-option input { width: auto; }
-.matches-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-.matches-table th, .matches-table td { padding: 10px 14px; border: 1px solid #ddd; text-align: left; }
-.matches-table th { background: #1a1a2e; color: white; }
-.teams-grid { display: flex; flex-wrap: wrap; gap: 1rem; }
-.team-card { background: #f5f5f5; border-radius: 8px; padding: 1rem; min-width: 180px; }
-.team-card ul { padding-left: 1rem; margin-top: 0.5rem; }
-.btn-register { background: #e63946; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
-.full-notice { color: #e63946; font-weight: bold; }
-</style>

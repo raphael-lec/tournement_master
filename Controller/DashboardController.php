@@ -2,7 +2,6 @@
 
 class DashboardController extends AbstractController 
 {
-    // --- TABLEAU DE BORD ADMIN ---
     public function admin_dashboard() : void
     {
         if (!$this->isAuthenticated() || !isset($_SESSION['user']) || $_SESSION['user']->getType() !== 'admin') {
@@ -29,7 +28,6 @@ class DashboardController extends AbstractController
         ]);
     }
 
-    // --- TABLEAU DE BORD JOUEUR ---
     public function player_dashboard() : void
     {
         if (!$this->isAuthenticated()) {
@@ -37,18 +35,42 @@ class DashboardController extends AbstractController
             exit();
         }
 
-        $user = $_SESSION['user'] ?? null;
-        $username = $_SESSION['username'] ?? 'Utilisateur';
+        $user = $_SESSION['user'];
+
+        $message = null;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
+            $newName  = trim($_POST['name'] ?? '');
+            $newEmail = trim($_POST['email'] ?? '');
+
+            if (!empty($newName) && !empty($newEmail)) {
+                $um = new UsersManager();
+                $um->updateProfile($user->getId(), $newName, $newEmail);
+                $updatedUser = $um->getUserById($user->getId());
+                $_SESSION['user'] = $updatedUser;
+                $user = $updatedUser;
+                $message = ['type' => 'success', 'text' => 'Profil mis à jour !'];
+            } else {
+                $message = ['type' => 'error', 'text' => 'Champs invalides.'];
+            }
+        }
+
+        $tm = new TournamentManager();
+        $tournaments  = $tm->getTournamentsByUser($user->getId());
+        $matchHistory = $tm->getMatchHistoryByUser($user->getId());
+        $stats        = $tm->getUserStats($user->getId());
 
         $this->render("player_dashboard", [
-            "pageTitle"   => "Mon Espace Joueur",
-            "isConnected" => true,
-            "username"    => $username,
-            "user"        => $user,
+            "pageTitle"    => "Mon Espace Joueur",
+            "isConnected"  => true,
+            "username"     => $user->getName(),
+            "user"         => $user,
+            "tournaments"  => $tournaments,
+            "matchHistory" => $matchHistory,
+            "stats"        => $stats,
+            "message"      => $message,
         ]);
     }
 
-    // --- TABLEAU DE BORD GESTIONNAIRE ---
     public function gestionary_dashboard() : void
     {
         if (!$this->isAuthenticated()) {
@@ -62,16 +84,19 @@ class DashboardController extends AbstractController
         $tm = new TournamentManager();
         $tournaments = $tm->findByOrganizer($user->getId());
 
+        $gm = new GameManager();
+        $games = $gm->getAllGames();
+
         $this->render("gestionary_dashboard", [
             "pageTitle"   => "Espace Gestionnaire",
             "isConnected" => true,
             "username"    => $username,
             "user"        => $user,
-            "tournaments" => $tournaments
+            "tournaments" => $tournaments,
+            "games"       => $games,
         ]);
     }
 
-    // --- TABLEAU DE BORD GESTIONNAIRE (TOURNOI SPÉCIFIQUE) ---
     public function gestionary_tournemant_dashboard() : void
     {
         if (!$this->isAuthenticated()) {
@@ -89,13 +114,11 @@ class DashboardController extends AbstractController
 
         $tm = new TournamentManager();
 
-        // Création des poules
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_poules'])) {
             $nbPoules = (int)$_POST['nb_poules'];
             $sortants = (int)$_POST['sortants_par_poule'];
             $poules   = [];
 
-            // Stocke le nombre de sortants en session
             $_SESSION['sortants_' . $tournamentId] = $sortants;
 
             for ($i = 0; $i < $nbPoules; $i++) {
@@ -108,7 +131,6 @@ class DashboardController extends AbstractController
             exit();
         }
 
-        // Mise à jour score
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['match_id'])) {
             $sortants = (int)($_SESSION['sortants_' . $tournamentId] ?? 1);
 
@@ -119,7 +141,6 @@ class DashboardController extends AbstractController
                 (int)$_POST['winner_team_id']
             );
 
-            // Génère les éliminatoires si poules terminées
             if ($tm->isPhaseComplete($tournamentId, 'poule')) {
                 $existingQuart  = $tm->getMatchesByPhase($tournamentId, 'quart');
                 $existingDemi   = $tm->getMatchesByPhase($tournamentId, 'demi');
@@ -129,7 +150,6 @@ class DashboardController extends AbstractController
                 }
             }
 
-            // Génère demi si quarts terminés
             if ($tm->isPhaseComplete($tournamentId, 'quart')) {
                 $existingDemi = $tm->getMatchesByPhase($tournamentId, 'demi');
                 if (empty($existingDemi)) {
@@ -137,11 +157,22 @@ class DashboardController extends AbstractController
                 }
             }
 
-            // Génère finale si demis terminées
             if ($tm->isPhaseComplete($tournamentId, 'demi')) {
                 $existingFinale = $tm->getMatchesByPhase($tournamentId, 'finale');
                 if (empty($existingFinale)) {
                     $tm->generateNextRound($tournamentId, 'demi');
+                }
+            }
+
+            if ($tm->isPhaseComplete($tournamentId, 'finale')) {
+                $finaleMatchs = $tm->getMatchesByPhase($tournamentId, 'finale');
+                $finaleMatch  = $finaleMatchs[0] ?? null;
+                if ($finaleMatch && $finaleMatch['winner_team_id'] > 0) {
+                    $winnerTeamId   = (int)$finaleMatch['winner_team_id'];
+                    $runnerUpTeamId = ($winnerTeamId == $finaleMatch['team1_id'])
+                        ? (int)$finaleMatch['team2_id']
+                        : (int)$finaleMatch['team1_id'];
+                    $tm->setTournamentResult($tournamentId, $winnerTeamId, $runnerUpTeamId);
                 }
             }
 
@@ -171,7 +202,6 @@ class DashboardController extends AbstractController
         ]);
     }
 
-    // --- FILTRAGE ET REDIRECTION DYNAMIQUE DU PROFIL ---
     public function profile() : void
     {
         if (!$this->isAuthenticated() || !isset($_SESSION['user'])) {
@@ -195,7 +225,7 @@ class DashboardController extends AbstractController
         }
     }
 
-    // --- SUPPRESSION D'UN UTILISATEUR ---
+
     public function delete_user() : void
     {
         if (!$this->isAuthenticated() || $_SESSION['user']->getType() !== 'admin') {
@@ -214,7 +244,6 @@ class DashboardController extends AbstractController
         exit();
     }
 
-    // --- SUPPRESSION D'UN TOURNOI ---
     public function delete_tournament() : void
     {
         if (!$this->isAuthenticated() || $_SESSION['user']->getType() !== 'admin') {
@@ -224,8 +253,8 @@ class DashboardController extends AbstractController
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['tournament_id'])) {
             $tournamentId = (int)$_POST['tournament_id'];
-            // $tournamentManager = new TournamentManager();
-            // $tournamentManager->deleteTournament($tournamentId);
+            $tournamentManager = new TournamentManager();
+            $tournamentManager->deleteTournament($tournamentId);
         }
 
         header("Location: index.php?route=admin_dashboard");
@@ -248,7 +277,6 @@ class DashboardController extends AbstractController
         exit();
     }
 
-    // --- CHANGEMENT DE RÔLE ---
     public function change_role() : void
     {
         if (!$this->isAuthenticated() || $_SESSION['user']->getType() !== 'admin') {
@@ -278,7 +306,9 @@ class DashboardController extends AbstractController
                 'format'          => (int)$_POST['format'],
                 'max_participant' => (int)$_POST['max_participant'],
                 'status'          => 'open',
-                'owner'           => $_SESSION['user']->getId()
+                'owner'           => $_SESSION['user']->getId(),
+                'discord_link'    => $_POST['discord_link'] ?? null,
+                'game_id'         => (int)$_POST['game_id'],
             ]);
         }
         header("Location: index.php?route=gestionary_dashboard");

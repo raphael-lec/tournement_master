@@ -1,0 +1,131 @@
+<div class="player-dashboard">
+
+    <h1> Mon Espace Joueur</h1>
+
+    <?php if ($message): ?>
+        <div class="alert alert-<?php echo $message['type']; ?>">
+            <?php echo htmlspecialchars($message['text']); ?>
+        </div>
+    <?php endif; ?>
+
+    <section class="dashboard-section">
+        <h2> Mon Profil</h2>
+        <form method="POST" action="index.php?route=profile" class="profile-form">
+            <input type="hidden" name="update_profile" value="1">
+            <div class="form-group">
+                <label>Nom d'utilisateur</label>
+                <input type="text" name="name" value="<?php echo htmlspecialchars($user->getName()); ?>" class="form-input" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="<?php echo htmlspecialchars($user->getEmail()); ?>" class="form-input" required>
+            </div>
+            <button type="submit" class="btn btn-save"> Sauvegarder</button>
+        </form>
+    </section>
+
+    <section class="dashboard-section">
+        <h2> Mes Statistiques</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number"><?php echo $stats['total']; ?></span>
+                <span class="stat-label">Matchs joués</span>
+            </div>
+            <div class="stat-card stat-win">
+                <span class="stat-number"><?php echo $stats['wins']; ?></span>
+                <span class="stat-label">Victoires</span>
+            </div>
+            <div class="stat-card stat-loss">
+                <span class="stat-number"><?php echo $stats['losses']; ?></span>
+                <span class="stat-label">Défaites</span>
+            </div>
+            <div class="stat-card stat-ratio">
+                <span class="stat-number"><?php echo $stats['ratio']; ?>%</span>
+                <span class="stat-label">Taux de victoire</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard-section">
+        <h2> Mes Tournois</h2>
+        <?php if (empty($tournaments)): ?>
+            <p>Vous n'avez participé à aucun tournoi.</p>
+        <?php else: ?>
+            <table class="dashboard-table">
+                <thead>
+                    <tr><th>Nom</th><th>Date</th><th>Statut</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($tournaments as $t): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($t['name']); ?></td>
+                            <td><?php echo htmlspecialchars($t['date']); ?></td>
+                            <td>
+                                <?php
+                                    $badge = match($t['status']) {
+                                        'open'    => ['badge-open', 'Inscriptions ouvertes'],
+                                        'ongoing' => ['badge-ongoing', 'En cours'],
+                                        default   => ['badge-finished', 'Terminé']
+                                    };
+                                ?>
+                                <span class="badge <?php echo $badge[0]; ?>"><?php echo $badge[1]; ?></span>
+                            </td>
+                            <td>
+                                <a href="index.php?route=tournemant_home&id=<?php echo $t['id']; ?>">Voir</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </section>
+
+    <!-- ===== HISTORIQUE DES MATCHS ===== -->
+    <section class="dashboard-section">
+        <h2> Historique des Matchs</h2>
+        <?php if (empty($matchHistory)): ?>
+            <p>Aucun match joué pour le moment.</p>
+        <?php else: ?>
+            <table class="dashboard-table">
+                <thead>
+                    <tr><th>Tournoi</th><th>Phase</th><th>Adversaire</th><th>Score</th><th>Résultat</th></tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($matchHistory as $match): ?>
+                        <?php
+                            $isTeam1 = $match['user_team_id'] == $match['team1_id'];
+                            $myTeam  = $isTeam1 ? $match['team1_name'] : $match['team2_name'];
+                            $opponent = $isTeam1 ? $match['team2_name'] : $match['team1_name'];
+                            $myScore  = $isTeam1 ? $match['score_team_1'] : $match['score_team_2'];
+                            $oppScore = $isTeam1 ? $match['score_team_2'] : $match['score_team_1'];
+
+                            if ($match['winner_team_id'] == 0) {
+                                $result = ['—', 'result-draw'];
+                            } elseif ($match['winner_team_id'] == $match['user_team_id']) {
+                                $result = [' Victoire', 'result-win'];
+                            } else {
+                                $result = [' Défaite', 'result-loss'];
+                            }
+
+                            $phaseLabel = match($match['phase'] ?? 'poule') {
+                                'poule'  => 'Poule',
+                                'quart'  => 'Quart',
+                                'demi'   => 'Demi',
+                                'finale' => 'Finale',
+                                default  => '—'
+                            };
+                        ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($match['tournament_name']); ?></td>
+                            <td><?php echo $phaseLabel; ?></td>
+                            <td><?php echo htmlspecialchars($opponent ?? '?'); ?></td>
+                            <td><?php echo $myScore; ?> - <?php echo $oppScore; ?></td>
+                            <td class="<?php echo $result[1]; ?>"><?php echo $result[0]; ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </section>
+
+</div>

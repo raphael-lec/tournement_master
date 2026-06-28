@@ -1,11 +1,15 @@
 <?php
 
-class GameManager extends AbstractManager // Ou ta classe de base pour les managers
+class GameManager extends AbstractManager 
 {
     public function addGame(string $name) : void
     {
-        // On utilise 'game' car c'est le nom de ta table
         $query = $this->db->prepare("INSERT INTO game (game_name) VALUES (:name)");
         $query->execute(['name' => $name]);
+    }
+    public function getAllGames() : array
+    {
+        $query = $this->db->query("SELECT id, game_name FROM game ORDER BY game_name");
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 }   

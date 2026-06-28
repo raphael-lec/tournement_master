@@ -2,7 +2,6 @@
 
 class TournamentController extends AbstractController 
 {
-    // --- LISTE DES TOURNOIS ---
     public function tournemant_list() : void
     {
         $isConnected = $this->isAuthenticated();
@@ -26,7 +25,6 @@ class TournamentController extends AbstractController
         ]);
     }
 
-    // --- ACCUEIL D'UN TOURNOI ---
     public function tournemant_home() : void
     {
         $isConnected = $this->isAuthenticated();
@@ -82,7 +80,6 @@ class TournamentController extends AbstractController
             }
         }
 
-        // Récupère les matchs par phase pour avoir le champ 'phase' rempli
         $matches = array_merge(
             $tm->getMatchesByPhase($tournamentId, 'poule'),
             $tm->getMatchesByPhase($tournamentId, 'quart'),
@@ -94,21 +91,34 @@ class TournamentController extends AbstractController
         $teamsCount = $tm->countTeams($tournamentId);
         $allUsers   = $tm->getAllUsers();
 
+        $winnerTeamId   = $tournament['winner_team_id'] ?? null;
+        $runnerUpTeamId = $tournament['runner_up_team_id'] ?? null;
+        $winnerName     = null;
+        $runnerUpName   = null;
+
+        foreach ($teams as $t) {
+            if ($winnerTeamId && $t['id'] == $winnerTeamId)     $winnerName   = $t['name'];
+            if ($runnerUpTeamId && $t['id'] == $runnerUpTeamId) $runnerUpName = $t['name'];
+        }
+
         $this->render("tournemant_home", [
-            "pageTitle"   => $tournament['name'],
-            "isConnected" => $isConnected,
-            "username"    => $username,
-            "user"        => $user,
-            "tournament"  => $tournament,
-            "matches"     => $matches,
-            "teams"       => $teams,
-            "teamsCount"  => $teamsCount,
-            "message"     => $message,
-            "allUsers"    => $allUsers,
+            "pageTitle"      => $tournament['name'],
+            "isConnected"    => $isConnected,
+            "username"       => $username,
+            "user"           => $user,
+            "tournament"     => $tournament,
+            "matches"        => $matches,
+            "teams"          => $teams,
+            "teamsCount"     => $teamsCount,
+            "message"        => $message,
+            "allUsers"       => $allUsers,
+            "winnerTeamId"   => $winnerTeamId,
+            "winnerName"     => $winnerName,
+            "runnerUpTeamId" => $runnerUpTeamId,
+            "runnerUpName"   => $runnerUpName,
         ]);
     }
 
-    // --- MATCHS D'UN TOURNOI ---
     public function tournemant_match() : void
     {
         $isConnected = $this->isAuthenticated();
@@ -128,7 +138,6 @@ class TournamentController extends AbstractController
         ]);
     }
 
-    // --- RÉSULTATS D'UN TOURNOI ---
     public function tournemant_result() : void
     {
         $isConnected = $this->isAuthenticated();
@@ -148,7 +157,6 @@ class TournamentController extends AbstractController
         ]);
     }
 
-    // --- LISTE DES JOUEURS D'UN TOURNOI ---
     public function tournemant_player_list() : void
     {
         $isConnected = $this->isAuthenticated();

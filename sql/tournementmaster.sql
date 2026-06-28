@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : dim. 28 juin 2026 à 14:48
+-- Généré le : dim. 28 juin 2026 à 21:55
 -- Version du serveur : 8.4.7
 -- Version de PHP : 8.3.28
 
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `party` (
   PRIMARY KEY (`id`),
   KEY `tournement_id` (`tournement_id`),
   KEY `winner_team_id` (`winner_team_id`)
-) ENGINE=MyISAM AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `party`
@@ -82,7 +82,22 @@ INSERT INTO `party` (`id`, `tournement_id`, `score_team_1`, `score_team_2`, `win
 (15, 9, 2, 0, 15, NULL, 'poule', 'B'),
 (16, 9, 2, 0, 8, NULL, 'finale', NULL),
 (17, 9, 2, 0, 8, NULL, 'finale', NULL),
-(18, 9, 2, 0, 8, NULL, 'finale', NULL);
+(18, 9, 2, 0, 8, NULL, 'finale', NULL),
+(19, 10, 2, 0, 17, NULL, 'poule', 'A'),
+(20, 10, 2, 0, 17, NULL, 'poule', 'A'),
+(21, 10, 1, 0, 17, NULL, 'poule', 'A'),
+(22, 10, 1, 0, 18, NULL, 'poule', 'A'),
+(23, 10, 1, 0, 18, NULL, 'poule', 'A'),
+(24, 10, 1, 0, 19, NULL, 'poule', 'A'),
+(25, 10, 1, 0, 21, NULL, 'poule', 'B'),
+(26, 10, 1, 0, 21, NULL, 'poule', 'B'),
+(27, 10, 1, 0, 21, NULL, 'poule', 'B'),
+(28, 10, 1, 0, 22, NULL, 'poule', 'B'),
+(29, 10, 1, 0, 22, NULL, 'poule', 'B'),
+(30, 10, 1, 0, 23, NULL, 'poule', 'B'),
+(31, 10, 1, 2, 18, NULL, 'demi', NULL),
+(32, 10, 1, 2, 21, NULL, 'demi', NULL),
+(33, 10, 1, 0, 18, NULL, 'finale', NULL);
 
 -- --------------------------------------------------------
 
@@ -132,7 +147,37 @@ INSERT INTO `party_participant` (`party_id`, `team_id`) VALUES
 (17, 8),
 (17, 13),
 (18, 8),
-(18, 13);
+(18, 13),
+(19, 17),
+(19, 18),
+(20, 17),
+(20, 19),
+(21, 17),
+(21, 20),
+(22, 18),
+(22, 19),
+(23, 18),
+(23, 20),
+(24, 19),
+(24, 20),
+(25, 21),
+(25, 22),
+(26, 21),
+(26, 23),
+(27, 21),
+(27, 24),
+(28, 22),
+(28, 23),
+(29, 22),
+(29, 24),
+(30, 23),
+(30, 24),
+(31, 17),
+(31, 18),
+(32, 21),
+(32, 22),
+(33, 18),
+(33, 21);
 
 -- --------------------------------------------------------
 
@@ -179,7 +224,7 @@ CREATE TABLE IF NOT EXISTS `team` (
   `tournement_id` int DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `leader` (`leader`)
-) ENGINE=MyISAM AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `team`
@@ -194,7 +239,15 @@ INSERT INTO `team` (`id`, `name`, `leader`, `tournement_id`) VALUES
 (13, 'team6', 9, 9),
 (14, 'team5', 8, 9),
 (15, 'team7', 10, 9),
-(16, 'team8', 11, 9);
+(16, 'team8', 11, 9),
+(17, 'j1', 4, 10),
+(18, 'j2', 5, 10),
+(19, 'j3', 6, 10),
+(20, 'j4', 7, 10),
+(21, 'j5', 8, 10),
+(22, 'j6', 9, 10),
+(23, 'j7', 10, 10),
+(24, 'j8', 12, 10);
 
 -- --------------------------------------------------------
 
@@ -248,7 +301,15 @@ INSERT INTO `team_member` (`team_id`, `user_id`) VALUES
 (13, 9),
 (14, 8),
 (15, 10),
-(16, 11);
+(16, 11),
+(17, 4),
+(18, 5),
+(19, 6),
+(20, 7),
+(21, 8),
+(22, 9),
+(23, 10),
+(24, 12);
 
 -- --------------------------------------------------------
 
@@ -266,20 +327,24 @@ CREATE TABLE IF NOT EXISTS `tournement` (
   `status` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT 'open',
   `date` datetime NOT NULL,
   `format` int NOT NULL,
+  `winner_team_id` int DEFAULT NULL,
+  `runner_up_team_id` int DEFAULT NULL,
+  `discord_link` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `game_id` (`game_id`),
   KEY `owner` (`owner`)
-) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `tournement`
 --
 
-INSERT INTO `tournement` (`id`, `game_id`, `name`, `owner`, `max_participant`, `status`, `date`, `format`) VALUES
-(6, 0, 'test', 2, 16, 'finish', '5839-07-25 00:00:00', 1),
-(7, 0, 'baguette', 2, 16, 'ongoing', '2026-05-12 00:00:00', 3),
-(8, 0, 'Raphale_YT', 2, 16, 'open', '2752-04-25 00:00:00', 4),
-(9, 0, 'test_match', 2, 16, 'ongoing', '5421-02-12 00:00:00', 1);
+INSERT INTO `tournement` (`id`, `game_id`, `name`, `owner`, `max_participant`, `status`, `date`, `format`, `winner_team_id`, `runner_up_team_id`, `discord_link`) VALUES
+(6, 0, 'test', 2, 16, 'finish', '5839-07-25 00:00:00', 1, NULL, NULL, NULL),
+(8, 0, 'Raphale_YT', 2, 16, 'open', '2752-04-25 00:00:00', 4, NULL, NULL, NULL),
+(9, 0, 'test_match', 2, 16, 'ongoing', '5421-02-12 00:00:00', 1, NULL, NULL, NULL),
+(10, 0, 'test_vainqueur', 2, 8, 'finish', '2026-12-11 00:00:00', 1, NULL, NULL, NULL),
+(11, 2, 'test_jeux_discord', 2, 16, 'open', '2026-07-01 00:00:00', 1, NULL, NULL, 'https://discord.gg/Pakr8d27');
 
 -- --------------------------------------------------------
 
@@ -296,7 +361,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT 'user',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=MyISAM AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Déchargement des données de la table `users`
@@ -306,13 +371,14 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `type`) VALUES
 (1, 'raphale', 'raphaelecerf@gmail.com', '$2y$10$MOe.WdqXb.mfrFTXjs.eHONDexGJ9GqXuUiVfOw1wMJU820QaV4Sm', 'admin'),
 (2, 'mwa', 'test1@gmail.com', '$2y$10$RHfs/SorrQmjccBtAGCud.Wv844K.TXX4jkL.u9hl7ZxRJo6w1b/u', 'gestionnaire'),
 (4, 'test', 'test2@gmail.com', '$2y$10$7ywnnICeN1jZZgrM0wjaZ.20KKdR88O/Ow4.5fxfHz5g8uOIRzKL6', 'user'),
-(5, 'test1', 'test3@gmail.com', '$2y$10$Fwc3IeKuyVlV2OOcXgcIJekmb6O1W0HGXNQTarME0cnjqWGFMa7Q6', 'user'),
+(5, 'the goat', 'test3@gmail.com', '$2y$10$Fwc3IeKuyVlV2OOcXgcIJekmb6O1W0HGXNQTarME0cnjqWGFMa7Q6', 'user'),
 (6, 'jp', 'test4@gmail.com', '$2y$10$V.4CJEy67/gnTAUfsZ0J5ObBBebSP4xpoov3IVfUxeXzj.jjCiFE2', 'user'),
 (7, 'test3', 'test5@gmail.com', '$2y$10$su6JcKttqqoxAhFeBElTCuFROK9F6KWyFP9l4TgOfmGLShe21MZW6', 'user'),
 (8, 'test', 'test6@gmail.com', '$2y$10$PuQu1YoB5kUkoaRWZdBb6OOZGLY1Yj/qsJr.OHoZNQRoDS2SYcxri', 'user'),
 (9, 'j7', 'test7@gmail.com', '$2y$10$Enuy0A135xs4aDgzPDAZh.SZrUo9AOiUjsfQzxjuZpMs0ypRY8JQa', 'user'),
 (10, 'j8', 'test8@gmail.com', '$2y$10$7rtIymDIDKr73CpIZBps1.rPV2Lxg53V/d1wmE/xHeMTbMxvTPQ9W', 'user'),
-(11, 'j10', 'test9@gmail.com', '$2y$10$tmuk0NfFvnVMinwYBGgENe8MtRkuZPBSapOCM2bjkj1dN8YD3fFEm', 'user');
+(11, 'j10', 'test9@gmail.com', '$2y$10$tmuk0NfFvnVMinwYBGgENe8MtRkuZPBSapOCM2bjkj1dN8YD3fFEm', 'user'),
+(12, 'j10', 'test10@gmail.com', '$2y$10$iqhAn5EXnmNXFyHBWKhSB.E85etjFJxiZ54WGh4a1adax/ihd6/qy', 'user');
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

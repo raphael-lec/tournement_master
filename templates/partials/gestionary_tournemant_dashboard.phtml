@@ -1,10 +1,9 @@
 <div class="tournament-dashboard">
     <h1>⚙️ Gestion du Tournoi</h1>
 
-    <!-- ===== CRÉATION DES POULES ===== -->
     <?php if (!$hasPoules): ?>
     <section class="dashboard-section">
-        <h2>🗂️ Organiser les poules</h2>
+        <h2> Organiser les poules</h2>
         <form method="POST" action="index.php?route=gestionary_tournemant_dashboard&id=<?php echo $tournamentId; ?>" id="poules-form">
             <input type="hidden" name="create_poules" value="1">
 
@@ -31,10 +30,9 @@
     </section>
     <?php endif; ?>
 
-    <!-- ===== MATCHS DE POULE ===== -->
     <?php if (!empty($poulesMatchs)): ?>
     <section class="dashboard-section">
-        <h2>🏟️ Phase de poules</h2>
+        <h2> Phase de poules</h2>
         <?php
             $poulesGrouped = [];
             foreach ($poulesMatchs as $match) {
@@ -80,8 +78,7 @@
     </section>
     <?php endif; ?>
 
-    <!-- ===== PHASES ÉLIMINATOIRES ===== -->
-    <?php foreach (['quart' => '⚔️ Quarts de finale', 'demi' => '🔥 Demi-finales', 'finale' => '🏆 Finale'] as $phase => $label): ?>
+    <?php foreach (['quart' => ' Quarts de finale', 'demi' => ' Demi-finales', 'finale' => ' Finale'] as $phase => $label): ?>
         <?php $matchs = match($phase) { 'quart' => $quartMatchs, 'demi' => $demiMatchs, 'finale' => $finaleMatchs }; ?>
         <?php if (!empty($matchs)): ?>
         <section class="dashboard-section">
@@ -123,9 +120,8 @@
         <?php endif; ?>
     <?php endforeach; ?>
 
-    <!-- ===== ÉQUIPES ===== -->
     <section class="dashboard-section">
-        <h2>👥 Équipes inscrites</h2>
+        <h2> Équipes inscrites</h2>
         <?php if (empty($teams)): ?>
             <p>Aucune équipe inscrite.</p>
         <?php else: ?>
@@ -137,7 +133,7 @@
                         <ul>
                             <?php if (!empty($team['members'])): ?>
                                 <?php foreach ($team['members'] as $member): ?>
-                                    <li>👤 <?php echo htmlspecialchars($member['name']); ?></li>
+                                    <li> <?php echo htmlspecialchars($member['name']); ?></li>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <li><em>Aucun membre</em></li>

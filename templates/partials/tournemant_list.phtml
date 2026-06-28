@@ -1,37 +1,9 @@
 <div class="tournament-list-container">
 
-    <header class="page-header">
+    <div class="page-header">
         <h1>Tous les <span class="text-accent">Tournois</span></h1>
         <p class="page-subtitle">Rejoignez une compétition en cours ou découvrez les résultats des précédents tournois.</p>
-    </header>
-
-    <section class="filter-section">
-        <form action="index.php" method="GET" class="filter-form">
-            <input type="hidden" name="action" value="tournaments">
-            
-            <div class="search-group">
-                <input type="text" name="search" placeholder="Rechercher par jeu, titre ou organisateur..." class="form-input">
-            </div>
-            
-            <div class="select-group">
-                <select name="status" class="form-select">
-                    <option value="">Tous les statuts</option>
-                    <option value="open">Inscriptions ouvertes</option>
-                    <option value="ongoing">En cours</option>
-                    <option value="finished">Terminé</option>
-                </select>
-
-                <select name="format" class="form-select">
-                    <option value="">Tous les formats</option>
-                    <option value="1v1">1v1</option>
-                    <option value="5v5">5v5</option>
-                </select>
-
-                <button type="submit" class="btn btn-search">Filtrer</button>
-            </div>
-        </form>
-    </section>
-
+</div>
     <section class="tournaments-grid">
         
         <?php if (!empty($tournaments)): ?>
@@ -56,6 +28,7 @@
 
                     <div class="card-body">
                         <h3 class="tournament-title"><?php echo htmlspecialchars($tournament['name']); ?></h3>
+                        <p class="tournament-info">🎮 Jeu : <?php echo htmlspecialchars($tournament['game_name'] ?? 'Non spécifié'); ?></p>
                         <p class="tournament-info">📅 Date : <?php echo htmlspecialchars($tournament['date']); ?></p>
                         <p class="tournament-info">👥 Max participants : <?php echo (int)$tournament['max_participant']; ?></p>
                     </div>

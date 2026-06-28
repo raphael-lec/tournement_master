@@ -1,9 +1,6 @@
 <?php
 class AuthController extends AbstractController
 {
-    // ==========================================
-    // 📝 INSCRIPTION
-    // ==========================================
     public function register(): void
     {
         $error = null;
@@ -36,9 +33,6 @@ class AuthController extends AbstractController
         $this->render('../auth/register', ['error' => $error]);
     }
 
-    // ==========================================
-    // 🔑 CONNEXION
-    // ==========================================
     public function login(): void
     {
         $error = null;
@@ -54,10 +48,7 @@ class AuthController extends AbstractController
                 $user = $manager->login($email, $password);
 
                 if ($user) {
-                    // On enregistre l'utilisateur dans la session globale
                     $_SESSION['user'] = $user;
-
-                    // Redirection vers l'accueil une fois connecté
                     $this->redirect('index.php?route=home');
                     return;
                 } else {
@@ -70,18 +61,11 @@ class AuthController extends AbstractController
     }
     public function logout() : void
 {
-    // Démarrer la session si ce n'est pas déjà fait
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-
-    // Vider les variables de session
     $_SESSION = [];
-
-    // Détruire la session côté serveur
     session_destroy();
-
-    // Rediriger vers la page de connexion ou l'accueil
     header("Location: index.php?route=login");
     exit();
 }
